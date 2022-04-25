@@ -1,6 +1,14 @@
 //============================LIBRARY=========================
 #include "esp_camera.h"
 #include <WiFi.h>
+#include "RTClib.h"
+#include <ezButton.h>
+RTC_DS1307 rtc;
+
+ezButton limitSwitch(7);  // create ezButton object that attach to pin 7;
+const int buz = 3;
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+int sole = 9;
 
 //
 // WARNING!!! PSRAM IC required for UXGA resolution and high JPEG quality
@@ -22,7 +30,9 @@
 
 
 //============================DONE============================
-
+//==========================INITIALIZATION=====================
+const char* ssid = "STUDIO GAMING";
+const char* password = "sukaayamgoreng";
 
 //===========================FUNCTION===========================
 
@@ -110,18 +120,88 @@ void espsetup(){
 
 //================================DONE==========================
 
-//==========================INITIALIZATION=====================
-const char* ssid = "STUDIO GAMING";
-const char* password = "sukaayamgoreng";
+
 
 //============================DONE===============================
 
 void setup() {
   Serial.begin(115200);
   espsetup();
+  limitSwitch.setDebounceTime(50); // set debounce time to 50 milliseconds
+  pinMode(buz,OUTPUT);
+  pinMode(sole, OUTPUT);
+#ifndef ESP8266
+  while (!Serial); // wait for serial port to connect. Needed for native USB
+#endif
+
+  if (! rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    Serial.flush();
+    while (1) delay(10);
+  }
+
+  if (! rtc.isrunning()) {
+    Serial.println("RTC is NOT running, let's set the time!");
+    // When time needs to be set on a new device, or after a power loss, the
+    // following line sets the RTC to the date & time this sketch was compiled
+    rtc.adjust(DateTime(2022,4,24,16,13,0));
+    // This line sets the RTC with an explicit date & time, for example to set
+    // January 21, 2014 at 3am you would call:
+    // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
+  }
+
+  // When time needs to be re-set on a previously configured device, the
+  // following line sets the RTC to the date & time this sketch was compiled
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  // This line sets the RTC with an explicit date & time, for example to set
+  // January 21, 2014 at 3am you would call:
+  // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
 }
+
 
 void loop() {
   // put your main code here, to run repeatedly:
+  limitSwitch.loop(); // MUST call the loop() function first
+
+  if(limitSwitch.isPressed())
+    Serial.println("The limit switch: UNTOUCHED -> TOUCHED");
+
+  if(limitSwitch.isReleased())
+    Serial.println("The limit switch: TOUCHED -> UNTOUCHED");
+
+  int state = limitSwitch.getState();
+  if(state == HIGH)
+    Serial.println("The limit switch: UNTOUCHED");
+    digitalWrite(buz,HIGH);
+  if(state == LOW)
+    Serial.println("The limit switch: TOUCHED");
+    digitalWrite(buz,LOW);
+    
   delay(10000);
+  DateTime now = rtc.now();
+
+    
+    Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
+    Serial.print("/ ");
+    Serial.print(now.day(), DEC);
+    Serial.print(" /");
+    Serial.print(now.hour(), DEC);
+    Serial.print(':');
+    Serial.print(now.minute(), DEC);
+    Serial.print(':');
+    Serial.print(now.second(), DEC);
+    if (now .hour() == 21 && now.minute() == 31){
+      solenoid();
+      
+    }
+    
+    Serial.println();
+    Serial.println();
+    delay(1000);
+}
+void solenoid(){
+    digitalWrite(sole, HIGH);
+    delay(6000);
+    digitalWrite(sole,LOW);
+    delay(1000);
 }
