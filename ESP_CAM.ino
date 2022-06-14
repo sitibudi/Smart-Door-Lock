@@ -261,10 +261,10 @@ void espsetup(){
 
  
 
-  startCameraServer();
+  startCameraServer(); //memanggil function untuk memulai camera server (bawaan library)
 
-  Serial.print("Camera Ready! Use 'http://");
-  Serial.print(WiFi.localIP());
+  Serial.print("Camera Ready! Use 'http://"); 
+  Serial.print(WiFi.localIP()); //fungsi untuk memanggil/mendapatkan local IP dari esp32 cam
   Serial.println("' to connect");
 
  
@@ -274,22 +274,23 @@ void espsetup(){
 //get local GMT time function
 void printLocalTime()
 {
- timeClient.update();
- timeClient.getFormattedTime();
+ timeClient.update(); // function library untuk mendapatkan update real time waktu dari timeClient
+ timeClient.getFormattedTime(); // function library untuk mendapatkan format waktu (HH;mm;dd) 
 
- delay(1000);
+ delay(1000); // delay 1 detik untuk update waktu dari timeClient
  
  
 }
 
 //security system function
+// function untuk mengaktifkan buzzer jika limit switch ditrigger
 void security(){
   
-   if(digitalRead(limit)==HIGH){
-    digitalWrite(buzzer,HIGH);
+   if(digitalRead(limit)==HIGH){ // jika limit switch release(lepas), maka akan arduino membaca nilai 1 (HIGH)
+    digitalWrite(buzzer,HIGH); // maka mengaktifkan buzzer untuk berbunyi
   }
-  else {
-    digitalWrite(buzzer,LOW);
+  else {  // jika keadaan lain atau limit switch tertekan 
+    digitalWrite(buzzer,LOW); // maka tidak mengaktifkan buzzer 
   }
 }
 
