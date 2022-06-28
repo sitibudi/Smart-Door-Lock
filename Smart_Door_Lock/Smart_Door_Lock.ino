@@ -42,7 +42,7 @@ const int limit = 13;
 #define buzzer 12
 int dly = 3000; //delay sistem alarm
 int button = 0;
-
+int alarm;
 
 
 
@@ -86,6 +86,22 @@ void firebaseSetup(){
   
 }
 
+//=========================================================SECURITY SYSTEM FUNCTION====================================================================
+// function untuk mengaktifkan buzzer jika limit switch ditrigger
+void security(){
+   
+   if(digitalRead(limit)==HIGH){ // jika limit switch release(lepas), maka akan arduino membaca nilai 1 (HIGH)
+    digitalWrite(buzzer,HIGH); // maka mengaktifkan buzzer untuk berbunyi
+    alarm = 1;
+    Firebase.setInt(fbdo,"/notification/alarm",alarm);
+  }
+  else {  // jika keadaan lain atau limit switch tertekan 
+    digitalWrite(buzzer,LOW); // maka tidak mengaktifkan buzzer
+    alarm = 0;
+    Firebase.setInt(fbdo,"/notification/alarm",alarm);
+  }
+}
+
 
   //=========================================JADWAL 1 ===========================================================
 void JADWAL1 (){
@@ -107,16 +123,8 @@ void JADWAL1 (){
 
   }
   else{
-    if(digitalRead(limit)==HIGH){
-    digitalWrite(buzzer,HIGH);
+   security();
   }
-    else {
-    digitalWrite(buzzer,LOW);
-  }
-  
-  }
-  
- 
    delay(300);
    
 }
@@ -139,14 +147,7 @@ void JADWAL2 (){
 //    digitalWrite(buzzer,LOW);
   }
   else{
-    if(digitalRead(limit)==HIGH){
-    digitalWrite(buzzer,HIGH);
-  }
-    else {
-    digitalWrite(buzzer,LOW);
-  }
-
-  
+    security();
   }
   
 }
@@ -169,12 +170,7 @@ void JADWAL3 (){
 
   }
   else{
-    if(digitalRead(limit)==HIGH){
-    digitalWrite(buzzer,HIGH);
-  }
-    else {
-    digitalWrite(buzzer,LOW);
-  }
+   security();
 
   }
   
@@ -293,20 +289,10 @@ void printLocalTime()
  
 }
 
-//security system function
-// function untuk mengaktifkan buzzer jika limit switch ditrigger
-void security(){
-  
-   if(digitalRead(limit)==HIGH){ // jika limit switch release(lepas), maka akan arduino membaca nilai 1 (HIGH)
-    digitalWrite(buzzer,HIGH); // maka mengaktifkan buzzer untuk berbunyi
-  }
-  else {  // jika keadaan lain atau limit switch tertekan 
-    digitalWrite(buzzer,LOW); // maka tidak mengaktifkan buzzer 
-  }
-}
 
 
-//================================DONE==========================
+
+//=============================================================================DONE=====================================================
 
 void runfirebase(){
 //  Read realtime database pintu  
@@ -326,20 +312,11 @@ void runfirebase(){
 
   else { // jika firebase tidak membaca nilai dari path pintu 
     // maka melakukan logika untuk mengaktifkan alarm 
-    if(digitalRead(limit)==HIGH){  
-    digitalWrite(buzzer,HIGH);
-    }
-    else {
-    digitalWrite(buzzer,LOW);
-    }
+    security();
   }
   
   }
   delay(300);
-  
-
-  
-  
 }
 // ========================================================MAIN PROGRAM================================================================
 void setup() {  // void setup merupakan fungsi program yang hanya dijalankan sekali saja 
